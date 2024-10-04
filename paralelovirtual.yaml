@@ -8,12 +8,25 @@ blueprint:
       selector:
         entity:
           domain:
-          - switch
-          - light
+            - switch
+            - light
           multiple: true
+
 trigger:
   platform: state
   entity_id: !input entrada_switchs
+
+condition:
+  - condition: template
+    value_template: >
+      {% if trigger.to_state.state == "on" %}
+        {{ trigger.from_state is not none and trigger.from_state.state != 'on' }}
+      {% elif trigger.to_state.state == "off" %}
+        {{ trigger.from_state is not none and trigger.from_state.state != 'off' }}
+      {% else %}
+        false
+      {% endif %}
+
 action:
   - service: >
       {% if trigger.to_state.state == "on" %}
@@ -22,8 +35,8 @@ action:
         homeassistant.turn_off
       {% endif %}
     target:
-      entity_id: >
-        {{ trigger.to_state.entity_id }}
+      entity_id: !input entrada_switchs
   - delay:
       seconds: 2
+
 mode: single
